@@ -1,12 +1,12 @@
-from interfaces.types import SlackMessage
+from type.type import MessageEventHandlerArgs
 
 
-def echo_block(event: SlackMessage, say):
-    say(
+def echo_block(args: MessageEventHandlerArgs) -> None:
+    args.say(
         blocks=[
             {
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": f"Hey there <@{event.user}>!"},
+                "text": {"type": "mrkdwn", "text": f"Hey there <@{args.event.user}>!"},
                 "accessory": {
                     "type": "button",
                     "text": {"type": "plain_text", "text": "Click Me"},
@@ -14,5 +14,5 @@ def echo_block(event: SlackMessage, say):
                 },
             }
         ],
-        text=f"Hey there <@{event.user}>!",
+        text=f"Hey there <@{args.event.user}>!",
     )

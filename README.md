@@ -1,6 +1,6 @@
 # slackpi
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/github/Yoshida24/slackpi)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Yoshida24/slackpi)
 
 Preset for development on Python using venv.
 

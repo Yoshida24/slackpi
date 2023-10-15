@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 from typing import Callable
-
-from slack_bolt import Say
+from slack_bolt import App, Say
 from typing import Any
 
+
 @dataclass
-class MessageEvent:
+class MentionEvent:
     blocks: list[dict]
-    channel: str
-    channel_type: str
-    client_msg_id: str
-    event_ts: float
+    channel: str = ""
+    client_msg_id: str = ""
+    event_ts: str = ""
     parent_user_id: str | None = None
     team: str = ""
     text: str = ""
@@ -21,10 +20,24 @@ class MessageEvent:
 
 
 @dataclass
-class MessageEventHandlerArgs:
+class MentionBody:
+    token: str
+    team_id: str
+    api_app_id: str
+    event: MentionEvent
+    type: str
+    event_id: str
+    event_time: int
+    authorizations: list[dict]
+    is_ext_shared_channel: bool
+    event_context: str
+
+
+@dataclass
+class MentionEventHandlerArgs:
     args: Any
-    event: MessageEvent
-    say: Say
+    event: MentionBody
+    app: App
 
 
 @dataclass
@@ -33,4 +46,4 @@ class RoutingConfig:
     description: str
     args: list[str]
     options: list[str]
-    handler: Callable[[MessageEventHandlerArgs], None]
+    handler: Callable[[MentionEventHandlerArgs], None]

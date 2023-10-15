@@ -1,58 +1,9 @@
-from features.echo import echo
-from features.echo_block import echo_block
-from features.head_sheet import head_sheet
 from slack_bolt import App, Say
-from type.type import MessageEvent, RoutingConfig, MessageEventHandlerArgs
-import argparse
-
-route_config: list[RoutingConfig] = [
-    RoutingConfig(
-        command="echo",
-        description="reply with user input.",
-        args=["user_input"],
-        options=[],
-        handler=echo,
-    ),
-    RoutingConfig(
-        command="echo_block",
-        description="show block.",
-        args=[],
-        options=[],
-        handler=echo_block,
-    ),
-    RoutingConfig(
-        command="head_sheet",
-        description="reply with spreadsheet data",
-        args=[],
-        options=[],
-        handler=head_sheet,
-    ),
-]
-
-def parse_message_event_to_command_if_match(args: list[str], route_config: list[RoutingConfig]):
-    """_summary_
-
-    Args:
-        args (list[str]): _description_
-        route_config (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    cmd = args[0]
-    parse_config = next((config for config in route_config if cmd == config.command), None)
-    if parse_config is None:
-        return None, None
-
-    parser = argparse.ArgumentParser(description=parse_config.description)
-    parser.add_argument("command")
-    for arg in parse_config.args:
-        parser.add_argument(arg)
-    for option in parse_config.options:
-        parser.add_argument('--' + option)
-
-    parsed_args = parser.parse_args(args)
-    return parsed_args, parse_config.handler
+from type.type import MentionEventHandlerArgs, MentionBody, MentionEvent
+from .arg_parser import parse_message_event_to_command_if_match
+from .route_config import route_config
+import re
+from modules.bolt.reply import reply
 
 
 # "bot_message" サブタイプのメッセージを抽出するリスナーミドルウェア
@@ -62,11 +13,46 @@ def no_bot_messages(message, next):
         next()
 
 
+def extract_mention_and_text(input_string: str) -> dict[str, str]:
+    # 正規表現を使用してメンションとテキストを抽出
+    mention_pattern = r"<@([^>]+)>"
+    mention_match = re.search(mention_pattern, input_string)
+
+    if mention_match:
+        mention = "@" + mention_match.group(1)
+        text = re.sub(mention_pattern, "", input_string).strip()
+    else:
+        mention = None
+        text = input_string.strip()
+
+    result = {"mention": mention, "text": text}
+
+    return result
+
+
 def listen(app: App):
     @app.event(event="message", middleware=[no_bot_messages])
     def message_handler(event, say: Say):
-        message_event = MessageEvent(**event)
-        raw_args = message_event.text.split(" ")
-        args, handler = parse_message_event_to_command_if_match(raw_args, route_config)
-        if args is not None and handler is not None:
-            handler(MessageEventHandlerArgs(args=args, event=message_event, say=say))
+        app.logger.info(event)
+
+    @app.event("app_mention")
+    def handle_app_mention_events(body):
+        mention_body = MentionBody(**body)
+        mention_body.event = MentionEvent(**body["event"])
+        mention_content = extract_mention_and_text(mention_body.event.text)
+        mention_text = mention_content["text"]
+        raw_args = mention_text.split(" ")
+        try:
+            args, handler = parse_message_event_to_command_if_match(
+                raw_args, route_config
+            )
+
+            if args is not None and handler is not None:
+                handler(MentionEventHandlerArgs(app=app, args=args, event=mention_body))
+        except BaseException as e:
+            app.logger.error(str(e))
+            reply(
+                app=app,
+                mention_body=mention_body,
+                text=str(str(e)),
+            )

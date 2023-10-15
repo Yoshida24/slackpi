@@ -1,10 +1,11 @@
 import os
 
 from modules.spreadsheet.spreadsheet import SpreadSheet
-from slack_bolt import Say
-from type.type import MessageEventHandlerArgs
+from type.type import MentionEventHandlerArgs
+from modules.bolt.reply import reply
 
-def head_sheet(args: MessageEventHandlerArgs) -> None:
+
+def head_sheet(args: MentionEventHandlerArgs) -> None:
     spreadsheet_client = SpreadSheet()
 
     # SpreadSheetへ接続
@@ -16,4 +17,8 @@ def head_sheet(args: MessageEventHandlerArgs) -> None:
     # [['id', 'message'], ['1', 'Foo'], ['2', 'Bar']]
     message = f"A1の要素：{sheet_values[0][0]}\nSpreadSheet URL: {spreadsheet_url}"
 
-    args.say(text=message)
+    reply(
+        app=args.app,
+        mention_body=args.event,
+        text=message,
+    )

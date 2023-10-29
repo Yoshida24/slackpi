@@ -1,20 +1,28 @@
-from type.type import RoutingConfig
+from type.type import CommandRoutingConfig
 import argparse
 
+from typing import Any, Callable
 import sys
 
 
 class RaiseArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         self.print_help(sys.stderr)
-        raise argparse.ArgumentError(None, message)
+        raise parse_and_check_args.ArgumentError(None, message)
+
+
+def is_command(args: list[str], route_config: list[CommandRoutingConfig]):
+    first_arg = args[0] if len(args[0]) > 0 else None
+    first_arg_is_command = next(
+        (config for config in route_config if first_arg == config.command), None
+    )
+    return first_arg_is_command is not None
 
 
 def parse_message_event_to_command_if_match(
-    args: list[str], route_config: list[RoutingConfig]
-):
+    args: list[str], route_config: list[CommandRoutingConfig]
+) -> tuple[Any, Callable] | tuple[None, None]:
     """_summary_
-
     Args:
         args (list[str]): _description_
         route_config (_type_): _description_

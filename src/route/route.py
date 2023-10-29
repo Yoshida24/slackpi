@@ -1,6 +1,6 @@
 from slack_bolt import App, Say
 from type.type import MentionEventHandlerArgs, MentionBody, MentionEvent
-from .arg_parser import parse_message_event_to_command_if_match
+from .arg_parser import parse_message_event_to_command_if_match, is_command
 from .route_config import route_config
 import re
 from modules.bolt.reply import reply
@@ -42,17 +42,26 @@ def listen(app: App):
         mention_content = extract_mention_and_text(mention_body.event.text)
         mention_text = mention_content["text"]
         raw_args = mention_text.split(" ")
-        try:
-            args, handler = parse_message_event_to_command_if_match(
-                raw_args, route_config
-            )
-
-            if args is not None and handler is not None:
-                handler(MentionEventHandlerArgs(app=app, args=args, event=mention_body))
-        except BaseException as e:
-            app.logger.error(str(e))
-            reply(
-                app=app,
-                mention_body=mention_body,
-                text=str(str(e)),
+        # chack is message is command,
+        if is_command(raw_args, route_config.command_routing_configs):
+            # in case of command, parse message to args and call handler
+            try:
+                args, command_handler = parse_message_event_to_command_if_match(
+                    raw_args, route_config.command_routing_configs
+                )
+                if args is not None and command_handler is not None:
+                    command_handler(
+                        MentionEventHandlerArgs(app=app, args=args, event=mention_body)
+                    )
+            except BaseException as e:
+                app.logger.error(str(e))
+                reply(
+                    app=app,
+                    mention_body=mention_body,
+                    text=str(str(e)),
+                )
+        else:
+            # in case of unstructured message, call handler
+            route_config.unstructured_message_routing_config.handler(
+                MentionEventHandlerArgs(app=app, args=None, event=mention_body)
             )

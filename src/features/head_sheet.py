@@ -5,7 +5,7 @@ from type.type import MentionEventHandlerArgs
 from modules.bolt.reply import reply
 
 
-def head_sheet(args: MentionEventHandlerArgs) -> None:
+def handler(args: MentionEventHandlerArgs) -> None:
     spreadsheet_client = SpreadSheet()
 
     # SpreadSheetへ接続

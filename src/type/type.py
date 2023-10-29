@@ -41,9 +41,15 @@ class MentionEventHandlerArgs:
 
 
 @dataclass
-class RoutingConfig:
+class CommandRoutingConfig:
     command: str
     description: str
     args: list[str]
     options: list[str]
+    handler: Callable[[MentionEventHandlerArgs], None]
+
+
+@dataclass
+class UnstructuredMessageRoutingConfig:
+    description: str
     handler: Callable[[MentionEventHandlerArgs], None]

@@ -10,8 +10,8 @@ def fetch_pokemon_data(name: str, **kwargs):
     response = requests.get(url)
     if response.status_code == 200:
         data = {
-            "wight": response.json()["weight"],
-            "height": response.json()["height"],
+            "wight": response.json()["weight"] * 0.1,
+            "height": response.json()["height"] * 0.1,
         }
         return json.dumps(data)
     else:

@@ -35,52 +35,53 @@ def response(messages: list[dict]) -> str:
         stream=False,
     )
 
-    firse_message = cast(dict, first_response)["choices"][0]["message"]
+    first_message = cast(dict, first_response)["choices"][0]["message"]
 
-    limit = 2
-    for i in range(limit):
-        if firse_message.get("function_call"):
-            """
-            function_call が実行された場合
-            """
-            function_name = (
-                "fetch_pokemon_data"  # firse_message["function_call"]["name"]
-            )
-            arguments = json.loads(firse_message["function_call"]["arguments"])
-            function_response = None
+    # limit = 2
+    # for i in range(limit):
+    if first_message.get("function_call"):
+        """
+        function_call が実行された場合
+        """
+        function_name = first_message["function_call"]["name"]
+        arguments = json.loads(first_message["function_call"]["arguments"])
+        function_response = None
 
-            # 関数の実行
-            function_response = fetch_pokemon_data(**arguments)
-            # for f_name, f_impl in function_calling_def.use_functions.items():
-            #     if function_name == f_name:
-            #         logger.info(f"function_name={function_name} arguments={arguments}")
-            #         function_response = f_impl(**arguments)
-            #         logger.info(function_response)
+        # 関数の実行
+        function_response = fetch_pokemon_data(**arguments)
+        print(function_name)
+        print(arguments)
+        print(function_response)
+        # for f_name, f_impl in function_calling_def.use_functions.items():
+        #     if function_name == f_name:
+        #         logger.info(f"function_name={function_name} arguments={arguments}")
+        #         function_response = f_impl(**arguments)
+        #         logger.info(function_response)
 
-            # 関数実行結果を使ってもう一度質問
-            second_response = openai.ChatCompletion.create(
-                model=model_name,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=1,
-                messages=[messages for message in messages]
-                + [firse_message]
-                + [
-                    {
-                        "role": "function",
-                        "name": function_name,
-                        "content": function_response,
-                    }
-                ],
-                stream=True,
-            )
+        # 関数実行結果を使ってもう一度質問
+        second_response = openai.ChatCompletion.create(
+            model=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=1,
+            messages=[message for message in messages]
+            + [first_message]
+            + [
+                {
+                    "role": "function",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            ],
+            stream=False,
+        )
 
-            response = second_response
-        else:
-            response = first_response
+        response = second_response
+    else:
+        response = first_response
 
-        logger.info(response)
-    return firse_message["content"]
+    logger.info(response)
+    return response["choices"][0]["message"]["content"]
 
 
 # def stream_response():

@@ -84,72 +84,72 @@ def response(messages: list[dict]) -> str:
     return response["choices"][0]["message"]["content"]
 
 
-# def stream_response():
-#     chat_compilation_content = ""
-#     function_calling_argument = ""
-#     function_calling_name = ""
+def stream_response():
+    chat_compilation_content = ""
+    function_calling_argument = ""
+    function_calling_name = ""
 
-#     for chunk in streaming_response:
-#         is_function_call_in_progress = "function_call" in chunk.choices[0].delta
-#         is_function_call_finished = any(
-#             choice.get("finish_reason") == "function_call"
-#             for choice in chunk.get("choices", [])
-#         )
-#         is_function_call = is_function_call_in_progress or is_function_call_finished
-#         if is_function_call:
-#             if is_function_call_finished:
-#                 return {
-#                     "choices": [
-#                         {
-#                             "message": {
-#                                 "content": None,
-#                                 "role": "assistant",
-#                                 "function_call": {
-#                                     "name": function_calling_name,
-#                                     "arguments": function_calling_argument,
-#                                 },
-#                             }
-#                         }
-#                     ],
-#                     "usage": None,
-#                 }
-#             elif is_function_call_in_progress:
-#                 if "name" in chunk.choices[0].delta.function_call:
-#                     function_calling_name = (
-#                         function_calling_name
-#                         + chunk.choices[0].delta.function_call.name
-#                     )
-#                 if "arguments" in chunk.choices[0].delta.function_call:
-#                     function_calling_argument = (
-#                         function_calling_argument
-#                         + chunk.choices[0].delta.function_call.arguments
-#                     )
-#         else:
-#             is_text_compilation_finished = any(
-#                 choice.get("finish_reason") == "stop"
-#                 for choice in chunk.get("choices", [])
-#             )
-#             if is_text_compilation_finished:
-#                 message_post.finish()
-#                 return {
-#                     "choices": [
-#                         {
-#                             "message": {
-#                                 "content": chat_compilation_content,
-#                                 "role": "assistant",
-#                             }
-#                         }
-#                     ],
-#                     "usage": None,
-#                 }
-#             else:
-#                 delta = chunk.choices[0].delta.content
-#                 chat_compilation_content = chat_compilation_content + delta
-#                 message_post.add_text(delta)
-#     raise Exception("not found")
+    for chunk in streaming_response:
+        is_function_call_in_progress = "function_call" in chunk.choices[0].delta
+        is_function_call_finished = any(
+            choice.get("finish_reason") == "function_call"
+            for choice in chunk.get("choices", [])
+        )
+        is_function_call = is_function_call_in_progress or is_function_call_finished
+        if is_function_call:
+            if is_function_call_finished:
+                return {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": None,
+                                "role": "assistant",
+                                "function_call": {
+                                    "name": function_calling_name,
+                                    "arguments": function_calling_argument,
+                                },
+                            }
+                        }
+                    ],
+                    "usage": None,
+                }
+            elif is_function_call_in_progress:
+                if "name" in chunk.choices[0].delta.function_call:
+                    function_calling_name = (
+                        function_calling_name
+                        + chunk.choices[0].delta.function_call.name
+                    )
+                if "arguments" in chunk.choices[0].delta.function_call:
+                    function_calling_argument = (
+                        function_calling_argument
+                        + chunk.choices[0].delta.function_call.arguments
+                    )
+        else:
+            is_text_compilation_finished = any(
+                choice.get("finish_reason") == "stop"
+                for choice in chunk.get("choices", [])
+            )
+            if is_text_compilation_finished:
+                message_post.finish()
+                return {
+                    "choices": [
+                        {
+                            "message": {
+                                "content": chat_compilation_content,
+                                "role": "assistant",
+                            }
+                        }
+                    ],
+                    "usage": None,
+                }
+            else:
+                delta = chunk.choices[0].delta.content
+                chat_compilation_content = chat_compilation_content + delta
+                message_post.add_text(delta)
+    raise Exception("not found")
 
 
-# text = openai_response["choices"][0]["message"]["content"]
+text = openai_response["choices"][0]["message"]["content"]
 
 
 def handler(args: MentionEventHandlerArgs) -> None:

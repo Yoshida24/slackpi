@@ -15,7 +15,7 @@ def fetch_pokemon_data(name: str, **kwargs):
         }
         return json.dumps(data)
     else:
-        return None
+        return "not found"
 
 
 function = {

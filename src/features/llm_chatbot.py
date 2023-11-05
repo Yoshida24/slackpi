@@ -5,6 +5,7 @@ from typing import cast
 import os
 import json
 from .pokefunction import fetch_pokemon_data, function
+from typing import Callable
 
 import logging
 from dataclasses import asdict
@@ -24,15 +25,18 @@ system_msg = "Friendly and helpful AI assistant at Choimirai School,\
 
 
 def response(messages: list[dict]) -> str:
-    first_response = openai.ChatCompletion.create(
-        model=model_name,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        top_p=1,
-        messages=messages,
-        functions=[function],
-        function_call="auto",
-        stream=False,
+    first_response = stream_response(
+        openai.ChatCompletion.create(
+            model=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=1,
+            messages=messages,
+            functions=[function],
+            function_call="auto",
+            stream=True,
+        ),
+        present_stream_response,
     )
 
     first_message = cast(dict, first_response)["choices"][0]["message"]
@@ -59,21 +63,24 @@ def response(messages: list[dict]) -> str:
         #         logger.info(function_response)
 
         # 関数実行結果を使ってもう一度質問
-        second_response = openai.ChatCompletion.create(
-            model=model_name,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=1,
-            messages=[message for message in messages]
-            + [first_message]
-            + [
-                {
-                    "role": "function",
-                    "name": function_name,
-                    "content": function_response,
-                }
-            ],
-            stream=False,
+        second_response = stream_response(
+            openai.ChatCompletion.create(
+                model=model_name,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=1,
+                messages=[message for message in messages]
+                + [first_message]
+                + [
+                    {
+                        "role": "function",
+                        "name": function_name,
+                        "content": function_response,
+                    }
+                ],
+                stream=True,
+            ),
+            present_stream_response,
         )
 
         response = second_response
@@ -84,7 +91,11 @@ def response(messages: list[dict]) -> str:
     return response["choices"][0]["message"]["content"]
 
 
-def stream_response():
+def present_stream_response(text: str):
+    print(text)
+
+
+def stream_response(streaming_response, streaming: Callable):
     chat_compilation_content = ""
     function_calling_argument = ""
     function_calling_name = ""
@@ -130,7 +141,6 @@ def stream_response():
                 for choice in chunk.get("choices", [])
             )
             if is_text_compilation_finished:
-                message_post.finish()
                 return {
                     "choices": [
                         {
@@ -145,11 +155,11 @@ def stream_response():
             else:
                 delta = chunk.choices[0].delta.content
                 chat_compilation_content = chat_compilation_content + delta
-                message_post.add_text(delta)
+                streaming(chat_compilation_content)
     raise Exception("not found")
 
 
-text = openai_response["choices"][0]["message"]["content"]
+# text = openai_response["choices"][0]["message"]["content"]
 
 
 def handler(args: MentionEventHandlerArgs) -> None:

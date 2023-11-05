@@ -7,6 +7,7 @@ import os
 import json
 from .pokefunction import fetch_pokemon_data, function
 from typing import Callable
+import time
 
 import logging
 from dataclasses import asdict
@@ -54,9 +55,9 @@ def response(
 
         # 関数の実行
         function_response = fetch_pokemon_data(**arguments)
-        print(function_name)
-        print(arguments)
-        print(function_response)
+        logger.info(function_name)
+        logger.info(arguments)
+        logger.info(function_response)
         # for f_name, f_impl in function_calling_def.use_functions.items():
         #     if function_name == f_name:
         #         logger.info(f"function_name={function_name} arguments={arguments}")
@@ -94,7 +95,6 @@ def response(
 
 def present_stream_response_clojure(args: MentionEventHandlerArgs, message_ts: str):
     def present_stream_response(text: str | None):
-        print(text)
         if text is None or text == "":
             return
         update_message(
@@ -107,10 +107,13 @@ def present_stream_response_clojure(args: MentionEventHandlerArgs, message_ts: s
     return present_stream_response
 
 
-def stream_response(streaming_response, streaming: Callable[[str], None]):
+def stream_response(
+    streaming_response, streaming: Callable[[str], None], update_interval=0.5
+):
     chat_compilation_content = ""
     function_calling_argument = ""
     function_calling_name = ""
+    last_update = time.time()
 
     for chunk in streaming_response:
         is_function_call_in_progress = "function_call" in chunk.choices[0].delta
@@ -168,7 +171,9 @@ def stream_response(streaming_response, streaming: Callable[[str], None]):
             else:
                 delta = chunk.choices[0].delta.content
                 chat_compilation_content = chat_compilation_content + delta
-                streaming(chat_compilation_content)
+                if time.time() - last_update > update_interval:
+                    last_update = time.time()
+                    streaming(chat_compilation_content)
     raise Exception("not found")
 
 

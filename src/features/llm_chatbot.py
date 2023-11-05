@@ -1,4 +1,5 @@
 from type.type import MentionEventHandlerArgs
+from modules.bolt.update_message import update_message
 from modules.bolt.reply import reply
 import openai
 from typing import cast
@@ -14,8 +15,6 @@ logger = logging.getLogger(__name__)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-###aaa
-
 model_name = "gpt-3.5-turbo"
 temperature = 0.9
 max_tokens = 2048
@@ -24,7 +23,9 @@ system_msg = "Friendly and helpful AI assistant at Choimirai School,\
     Her name is Riley."
 
 
-def response(messages: list[dict]) -> str:
+def response(
+    messages: list[dict], present_stream_response: Callable[[str], None]
+) -> str:
     first_response = stream_response(
         openai.ChatCompletion.create(
             model=model_name,
@@ -91,11 +92,22 @@ def response(messages: list[dict]) -> str:
     return response["choices"][0]["message"]["content"]
 
 
-def present_stream_response(text: str):
-    print(text)
+def present_stream_response_clojure(args: MentionEventHandlerArgs, message_ts: str):
+    def present_stream_response(text: str | None):
+        print(text)
+        if text is None or text == "":
+            return
+        update_message(
+            app=args.app,
+            channel=args.event.event.channel,
+            ts=message_ts,
+            text=text,
+        )
+
+    return present_stream_response
 
 
-def stream_response(streaming_response, streaming: Callable):
+def stream_response(streaming_response, streaming: Callable[[str], None]):
     chat_compilation_content = ""
     function_calling_argument = ""
     function_calling_name = ""
@@ -141,6 +153,7 @@ def stream_response(streaming_response, streaming: Callable):
                 for choice in chunk.get("choices", [])
             )
             if is_text_compilation_finished:
+                streaming(chat_compilation_content)
                 return {
                     "choices": [
                         {
@@ -159,16 +172,14 @@ def stream_response(streaming_response, streaming: Callable):
     raise Exception("not found")
 
 
-# text = openai_response["choices"][0]["message"]["content"]
-
-
 def handler(args: MentionEventHandlerArgs) -> None:
+    res = reply(
+        app=args.app,
+        mention_body=args.event,
+        text="...",
+    )
+    present_stream_response = present_stream_response_clojure(args, res["ts"])
     messages = []
     messages.append({"role": "system", "content": system_msg})
     messages.append({"role": "user", "content": args.event.event.text})
-    res = response(messages)
-    reply(
-        args.app,
-        mention_body=args.event,
-        text=f"<@{args.event.event.user}>\n{res} ",
-    )
+    response(messages=messages, present_stream_response=present_stream_response)

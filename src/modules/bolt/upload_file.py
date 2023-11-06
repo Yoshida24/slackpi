@@ -8,6 +8,7 @@ def upload_file(
     app: App,
     mention_body: MentionBody,
     file,
+    thread_ts: str,
     filename="screenshot.png",
     title="Screenshot",
 ):
@@ -15,10 +16,9 @@ def upload_file(
         file.seek(0)  # Ensure we're at the start of the file
         result = app.client.files_upload_v2(
             channels=mention_body.event.channel,
-            thread_ts=mention_body.event.thread_ts,
+            thread_ts=thread_ts,
             file=file,
             filename=filename,
-            filetype="png",
             title=title,
         )
         return result["file"]  # the uploaded file

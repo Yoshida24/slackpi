@@ -31,6 +31,7 @@ def response(
     messages: list[dict],
     present_stream_response: Callable[[str], None],
     args: MentionEventHandlerArgs,
+    message_ts: str,
 ) -> dict:
     function_response_file = None
 
@@ -107,6 +108,7 @@ def response(
             app=args.app,
             mention_body=args.event,
             file=function_response_file,
+            thread_ts=message_ts,
         )
     return {
         "content": response["choices"][0]["message"]["content"],
@@ -214,4 +216,5 @@ def handler(args: MentionEventHandlerArgs) -> None:
         messages=messages,
         present_stream_response=present_stream_response,
         args=args,
+        message_ts=res["ts"],
     )

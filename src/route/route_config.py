@@ -1,7 +1,7 @@
 import features.echo as echo
 import features.echo_block as echo_block
 import features.head_sheet as head_sheet
-import features.llm_chatbot as llm_chatbot
+import features.llm_chatbot.llm_chatbot as llm_chatbot
 from type.type import CommandRoutingConfig, UnstructuredMessageRoutingConfig
 from dataclasses import dataclass
 

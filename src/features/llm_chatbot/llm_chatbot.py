@@ -1,11 +1,14 @@
 from type.type import MentionEventHandlerArgs
 from modules.bolt.update_message import update_message
 from modules.bolt.reply import reply
+from modules.bolt.upload_file import upload_file
 import openai
 from typing import cast
 import os
 import json
-from .pokefunction import fetch_pokemon_data, function
+
+from .functions.pokefunction import fetch_pokemon_data, function
+from .functions.screenshot import take_screenshot, screenshot_function
 from typing import Callable
 import time
 
@@ -25,8 +28,14 @@ system_msg = "Friendly and helpful AI assistant at Choimirai School,\
 
 
 def response(
-    messages: list[dict], present_stream_response: Callable[[str], None]
-) -> str:
+    messages: list[dict],
+    present_stream_response: Callable[[str], None],
+    args: MentionEventHandlerArgs,
+    message_ts: str,
+) -> dict:
+    function_response_file = None
+    functions = [function, screenshot_function]
+
     first_response = stream_response(
         openai.ChatCompletion.create(
             model=model_name,
@@ -34,7 +43,8 @@ def response(
             max_tokens=max_tokens,
             top_p=1,
             messages=messages,
-            functions=[function],
+            functions=functions,
+            # functions=[screenshot_function],
             function_call="auto",
             stream=True,
         ),
@@ -54,15 +64,23 @@ def response(
         function_response = None
 
         # 関数の実行
-        function_response = fetch_pokemon_data(**arguments)
-        logger.info(function_name)
-        logger.info(arguments)
-        logger.info(function_response)
-        # for f_name, f_impl in function_calling_def.use_functions.items():
-        #     if function_name == f_name:
-        #         logger.info(f"function_name={function_name} arguments={arguments}")
-        #         function_response = f_impl(**arguments)
-        #         logger.info(function_response)
+        # function_response = fetch_pokemon_data(**arguments)
+        for f in functions:
+            if function_name == f["name"]:
+                if function_name == "take_screenshot":
+                    selected_function = take_screenshot
+                elif function_name == "fetch_pokemon_data":
+                    selected_function = fetch_pokemon_data
+                else:
+                    raise Exception("function not found")
+
+                function_response = selected_function(**arguments)
+                function_response_msg = function_response["message"]
+                function_response_file = function_response["file"]
+                logger.info(f"function_name={function_name} arguments={arguments}")
+                logger.info(
+                    f"function_response_msg={function_response_msg} function_response_file={function_response_file}"
+                )
 
         # 関数実行結果を使ってもう一度質問
         second_response = stream_response(
@@ -77,7 +95,7 @@ def response(
                     {
                         "role": "function",
                         "name": function_name,
-                        "content": function_response,
+                        "content": function_response_msg,
                     }
                 ],
                 stream=True,
@@ -90,7 +108,18 @@ def response(
         response = first_response
 
     logger.info(response)
-    return response["choices"][0]["message"]["content"]
+
+    if function_response_file is not None:
+        upload_file(
+            app=args.app,
+            mention_body=args.event,
+            file=function_response_file,
+            thread_ts=message_ts,
+        )
+    return {
+        "content": response["choices"][0]["message"]["content"],
+        "file": function_response_file,
+    }
 
 
 def present_stream_response_clojure(args: MentionEventHandlerArgs, message_ts: str):
@@ -108,7 +137,9 @@ def present_stream_response_clojure(args: MentionEventHandlerArgs, message_ts: s
 
 
 def stream_response(
-    streaming_response, streaming: Callable[[str], None], update_interval=0.5
+    streaming_response,
+    streaming: Callable[[str], None],
+    update_interval=0.5,
 ):
     chat_compilation_content = ""
     function_calling_argument = ""
@@ -187,4 +218,9 @@ def handler(args: MentionEventHandlerArgs) -> None:
     messages = []
     messages.append({"role": "system", "content": system_msg})
     messages.append({"role": "user", "content": args.event.event.text})
-    response(messages=messages, present_stream_response=present_stream_response)
+    response(
+        messages=messages,
+        present_stream_response=present_stream_response,
+        args=args,
+        message_ts=res["ts"],
+    )

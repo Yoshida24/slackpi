@@ -9,7 +9,7 @@ def take_screenshot(url: str, **kwargs) -> dict:
         browser = playwright.chromium.launch()
         page = browser.new_page()
         page.goto(url)
-        screenshot = page.screenshot()
+        screenshot = page.screenshot(full_page=True)
         output.write(screenshot)
         browser.close()
 

@@ -11,9 +11,9 @@ def fetch_pokemon_data(name: str, **kwargs):
             "wight": response.json()["weight"] * 0.1,
             "height": response.json()["height"] * 0.1,
         }
-        return json.dumps(data)
+        return {"message": json.dumps(data), "file": None}
     else:
-        return "not found"
+        return {"message": "not found.", "file": None}
 
 
 function = {

@@ -7,7 +7,7 @@ from typing import cast
 import os
 import json
 
-# from .functions.pokefunction import fetch_pokemon_data, function
+from .functions.pokefunction import fetch_pokemon_data, function
 from .functions.screenshot import take_screenshot, screenshot_function
 from typing import Callable
 import time
@@ -34,6 +34,7 @@ def response(
     message_ts: str,
 ) -> dict:
     function_response_file = None
+    functions = [function, screenshot_function]
 
     first_response = stream_response(
         openai.ChatCompletion.create(
@@ -42,8 +43,8 @@ def response(
             max_tokens=max_tokens,
             top_p=1,
             messages=messages,
-            # functions=[function, screenshot_function],
-            functions=[screenshot_function],
+            functions=functions,
+            # functions=[screenshot_function],
             function_call="auto",
             stream=True,
         ),
@@ -64,17 +65,22 @@ def response(
 
         # 関数の実行
         # function_response = fetch_pokemon_data(**arguments)
-        function_response = take_screenshot(**arguments)
-        function_response_msg = function_response["message"]
-        function_response_file = function_response["file"]
-        logger.info(function_name)
-        logger.info(arguments)
-        logger.info(function_response)
-        # for f_name, f_impl in function_calling_def.use_functions.items():
-        #     if function_name == f_name:
-        #         logger.info(f"function_name={function_name} arguments={arguments}")
-        #         function_response = f_impl(**arguments)
-        #         logger.info(function_response)
+        for f in functions:
+            if function_name == f["name"]:
+                if function_name == "take_screenshot":
+                    selected_function = take_screenshot
+                elif function_name == "fetch_pokemon_data":
+                    selected_function = fetch_pokemon_data
+                else:
+                    raise Exception("function not found")
+
+                function_response = selected_function(**arguments)
+                function_response_msg = function_response["message"]
+                function_response_file = function_response["file"]
+                logger.info(f"function_name={function_name} arguments={arguments}")
+                logger.info(
+                    f"function_response_msg={function_response_msg} function_response_file={function_response_file}"
+                )
 
         # 関数実行結果を使ってもう一度質問
         second_response = stream_response(

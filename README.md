@@ -59,3 +59,9 @@ Deactivate venv:
 ```bash
 deactivate
 ```
+
+Kill Python process:
+
+```bash
+sudo pkill -f python
+```

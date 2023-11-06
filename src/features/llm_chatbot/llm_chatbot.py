@@ -5,7 +5,9 @@ import openai
 from typing import cast
 import os
 import json
-from .pokefunction import fetch_pokemon_data, function
+
+# from .functions.pokefunction import fetch_pokemon_data, function
+from .functions.screenshot import take_screenshot, screenshot_function
 from typing import Callable
 import time
 
@@ -34,7 +36,8 @@ def response(
             max_tokens=max_tokens,
             top_p=1,
             messages=messages,
-            functions=[function],
+            # functions=[function, screenshot_function],
+            functions=[screenshot_function],
             function_call="auto",
             stream=True,
         ),
@@ -54,7 +57,8 @@ def response(
         function_response = None
 
         # 関数の実行
-        function_response = fetch_pokemon_data(**arguments)
+        # function_response = fetch_pokemon_data(**arguments)
+        function_response = take_screenshot(**arguments)
         logger.info(function_name)
         logger.info(arguments)
         logger.info(function_response)

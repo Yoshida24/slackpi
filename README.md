@@ -13,7 +13,7 @@ Preset for development on Python using venv.
 
 Depends on:
 - Python: 3.11.2
-- pip: 22.3.1
+- pip: 23.3.1
 - GNU Make: 3.81
 
 Supported Device and OS:

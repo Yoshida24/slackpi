@@ -162,3 +162,5 @@ cython_debug/
 NOTE.md
 keys/*
 !keys/.gitkeep
+
+.env*

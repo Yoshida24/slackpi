@@ -15,6 +15,10 @@ from features.llm_chatbot.tools.screenshot import (
     take_screenshot_impl,
     take_screenshot_tool,
 )
+from features.llm_chatbot.tools.pixoo64.pixoo64_display_image_text import (
+    pixoo64_display_image_text_impl,
+    pixoo64_display_image_text_tool,
+)
 from typing import Callable
 
 import logging
@@ -23,10 +27,10 @@ logger = logging.getLogger(__name__)
 
 openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 llm_model = "gpt-4-1106-preview"
-temperature = 0.9
+temperature = 0.1
 system_msg = "You are a Friendly and helpful AI assistant."
 
-tools = [take_screenshot_tool, fetch_pokemon_data_tool]
+tools = [take_screenshot_tool, fetch_pokemon_data_tool, pixoo64_display_image_text_tool]
 
 
 def tools_response(
@@ -59,6 +63,8 @@ def tools_response(
                 if function_name == tool["function"]["name"]:
                     if function_name == "take_screenshot":
                         selected_function = take_screenshot_impl
+                    if function_name == "pixoo64_display_image_text":
+                        selected_function = pixoo64_display_image_text_impl
                     elif function_name == "fetch_pokemon_data":
                         selected_function = fetch_pokemon_data_impl
                     else:

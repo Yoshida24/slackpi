@@ -55,7 +55,19 @@ def display_text(
 
 
 def url_to_rgb_base64(image_url: str):
-    # URLから画像データを取得
+    """
+    URLから画像データを取得し、RGB値をBase64エンコードして返却
+    横長・縦長の画像の場合は短辺に合わせて中央を正方形にクリッピングする
+
+        Args:
+            image_url (str): _description_
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            _type_: _description_
+    """
     response = requests.get(image_url)
     if response.status_code == 200:
         # BytesIOを使用して画像データを読み込み
@@ -63,6 +75,16 @@ def url_to_rgb_base64(image_url: str):
 
         # PILで画像を開きRGBモードに変換
         with Image.open(image_data) as img:
+            # 画像の中心部分を正方形にクリッピング
+            width, height = img.size
+            if width != height:
+                min_dim = min(width, height)
+                left = int((width - min_dim) / 2)
+                top = int((height - min_dim) / 2)
+                right = int((width + min_dim) / 2)
+                bottom = int((height + min_dim) / 2)
+                img = img.crop((left, top, right, bottom))
+
             # アンチエイリアシングを使用してリサイズ
             img = img.resize((DESIRED_SIZE, DESIRED_SIZE), Image.Resampling.LANCZOS)
 

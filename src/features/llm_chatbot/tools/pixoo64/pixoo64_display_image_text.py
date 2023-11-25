@@ -3,8 +3,8 @@ from openai.types.chat import ChatCompletionToolParam
 
 
 def pixoo64_display_image_text_impl(
-    image_url: str | None,
-    text: str | None,
+    image_url: str | None = None,
+    text: str | None = None,
     text_color: str = "#FFFFFF",
     text_pos: str = "bottom",
     **kwargs

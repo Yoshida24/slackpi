@@ -6,7 +6,10 @@ import requests
 import io
 import base64
 
+DISPLAY_WIDTH = 64
+DISPLAY_HEIGHT = 64
 DESIRED_SIZE = 64
+pos_def = {"bottom": 47, "middle": 24, "top": 1}
 
 
 def get_device_port() -> str:
@@ -28,20 +31,24 @@ def base_url() -> str:
     return f"http://{get_device_ip_address()}:{get_device_port()}"
 
 
-def display_text(text: str):
+def display_text(
+    text: str,
+    color: str,
+    pos: str,
+):
     requests.post(
         f"{base_url()}/post",
         json={
             "Command": "Draw/SendHttpText",
             "TextId": 1,
             "x": 0,
-            "y": 48,
+            "y": pos_def[pos],
             "dir": 0,
             "font": 4,
-            "TextWidth": 56,
-            "speed": 10,
+            "TextWidth": DISPLAY_WIDTH,
+            "speed": 5,
             "TextString": text,
-            "color": "#FFFFFF",
+            "color": color,
             "align": 1,
         },
     )
@@ -94,7 +101,12 @@ def reset():
     )
 
 
-def display(image_url: str | None, text: str | None):
+def display(
+    image_url: str | None,
+    text: str | None,
+    text_color: str,
+    text_pos: str,
+):
     """URL・文字列を与えると画像と文字列を表示
 
     Args:
@@ -121,4 +133,4 @@ def display(image_url: str | None, text: str | None):
 
     if text is not None:
         time.sleep(1)
-        display_text(text=text)
+        display_text(text=text, color=text_color, pos=text_pos)

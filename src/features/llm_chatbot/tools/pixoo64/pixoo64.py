@@ -35,7 +35,7 @@ def display_text(text: str):
             "Command": "Draw/SendHttpText",
             "TextId": 1,
             "x": 0,
-            "y": 42,
+            "y": 48,
             "dir": 0,
             "font": 4,
             "TextWidth": 56,

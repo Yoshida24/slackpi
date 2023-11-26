@@ -1,11 +1,14 @@
 from slack_bolt import App
 from slack_sdk.web.slack_response import SlackResponse
 from type.type import MentionBody
-from typing import Any
+from typing import Any, Optional
 
 
 def reply(
-    app: App, mention_body: MentionBody, text: str, blocks: list[dict[Any, Any]] = []
+    app: App,
+    mention_body: MentionBody,
+    text: Optional[str] = None,
+    blocks: list[dict[Any, Any]] = [],
 ) -> SlackResponse:
     res: SlackResponse = app.client.chat_postMessage(
         channel=mention_body.event.channel,

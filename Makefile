@@ -18,7 +18,7 @@ test:
 	@echo "Testing..."
 	bash scripts/test.sh
 
-.PHONY: upgrade
+.PHONY: reboot
 upgrade:
-	@echo "Upgrade..."
-	bash scripts/upgrade.sh
+	@echo "Reboot..."
+	bash scripts/reboot.sh

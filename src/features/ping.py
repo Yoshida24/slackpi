@@ -15,12 +15,6 @@ def handler(args: MentionEventHandlerArgs) -> None:
                 "type": "rich_text",
                 "elements": [
                     {
-                        "type": "rich_text_section",
-                        "elements": [
-                            {"type": "text", "text": "success"},
-                        ],
-                    },
-                    {
                         "type": "rich_text_list",
                         "style": "bullet",
                         "elements": [

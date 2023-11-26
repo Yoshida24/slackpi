@@ -17,3 +17,8 @@ serve:
 test:
 	@echo "Testing..."
 	bash scripts/test.sh
+
+.PHONY: upgrade
+upgrade:
+	@echo "Upgrade..."
+	bash scripts/upgrade.sh

@@ -121,20 +121,28 @@ def slack_reply_clojure(args: MentionEventHandlerArgs, message_ts: str):
 
 
 def handler(args: MentionEventHandlerArgs) -> None:
-    thread_start_res = reply(
-        app=args.app,
-        mention_body=args.event,
-        text="...",
-    )
-    slack_reply = slack_reply_clojure(args, thread_start_res["ts"])
-    messages = []
-    messages.append({"role": "system", "content": system_msg})
-    messages.append({"role": "user", "content": args.event.event.text})
-    tools_result = tools_response(messages=messages, presenter=slack_reply)
-    if tools_result["file"] is not None:
-        upload_file(
+    try:
+        thread_start_res = reply(
             app=args.app,
             mention_body=args.event,
-            file=tools_result["file"],
-            thread_ts=thread_start_res["ts"],
+            text="...",
+        )
+        slack_reply = slack_reply_clojure(args, thread_start_res["ts"])
+        messages = []
+        messages.append({"role": "system", "content": system_msg})
+        messages.append({"role": "user", "content": args.event.event.text})
+        tools_result = tools_response(messages=messages, presenter=slack_reply)
+        if tools_result["file"] is not None:
+            upload_file(
+                app=args.app,
+                mention_body=args.event,
+                file=tools_result["file"],
+                thread_ts=thread_start_res["ts"],
+            )
+    except BaseException as e:
+        args.app.logger.error(str(e))
+        reply(
+            app=args.app,
+            mention_body=args.event,
+            text=f"Error: {str(str(e))}",
         )

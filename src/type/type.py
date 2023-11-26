@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 from slack_bolt import App, Say
 from typing import Any
 
@@ -10,13 +10,14 @@ class MentionEvent:
     channel: str = ""
     client_msg_id: str = ""
     event_ts: str = ""
-    parent_user_id: str | None = None
+    parent_user_id: Optional[str] = None
     team: str = ""
     text: str = ""
-    thread_ts: str | None = None
+    thread_ts: Optional[str] = None
     ts: str = ""
     type: str = ""
     user: str = ""
+    attachments: Optional[Any] = None
 
 
 @dataclass

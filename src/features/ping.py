@@ -59,6 +59,11 @@ def get_ip():
     ip = s.getsockname()[0]
     s.close()
     ip = str(ip)
+
+    import requests
+
+    response = requests.get("https://api.ipify.org")
+    ip = response.text  # 210.170.167.35
     return ip
 
 

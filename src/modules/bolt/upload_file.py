@@ -23,4 +23,4 @@ def upload_file(
         )
         return result["file"]  # the uploaded file
     except SlackApiError as e:
-        print(f"Error uploading file: {e}")
+        raise e

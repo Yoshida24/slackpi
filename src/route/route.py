@@ -4,6 +4,8 @@ from .arg_parser import parse_message_event_to_command_if_match, is_command
 from .route_config import route_config
 import re
 from modules.bolt.reply import reply
+from modules.bolt.get_conversations import get_conversations
+from modules.bolt.extract_mention_and_text import extract_mention_and_text
 
 
 # "bot_message" サブタイプのメッセージを抽出するリスナーミドルウェア
@@ -11,23 +13,6 @@ def no_bot_messages(message, next):
     subtype = message.get("subtype")
     if subtype != "bot_message":
         next()
-
-
-def extract_mention_and_text(input_string: str) -> dict[str, str]:
-    # 正規表現を使用してメンションとテキストを抽出
-    mention_pattern = r"<@([^>]+)>"
-    mention_match = re.search(mention_pattern, input_string)
-
-    if mention_match:
-        mention = "@" + mention_match.group(1)
-        text = re.sub(mention_pattern, "", input_string).strip()
-    else:
-        mention = None
-        text = input_string.strip()
-
-    result = {"mention": mention, "text": text}
-
-    return result
 
 
 def listen(app: App):
@@ -39,12 +24,12 @@ def listen(app: App):
     def handle_app_mention_events(body):
         mention_body = MentionBody(**body)
         mention_body.event = MentionEvent(**body["event"])
-        mention_content = extract_mention_and_text(mention_body.event.text)
-        mention_text = mention_content["text"]
-        raw_args = mention_text.split(" ")
         # chack is message is command,
+        raw_args = extract_mention_and_text(mention_body.event.text)["text"].split(
+            " "
+        )  # ["text", "separated", "by", "space"]
         if is_command(raw_args, route_config.command_routing_configs):
-            # in case of command, parse message to args and call handler
+            # In case of command, parse message to args and call handler
             try:
                 args, command_handler = parse_message_event_to_command_if_match(
                     raw_args, route_config.command_routing_configs
@@ -61,7 +46,19 @@ def listen(app: App):
                     text=str(str(e)),
                 )
         else:
-            # in case of unstructured message, call handler
-            route_config.unstructured_message_routing_config.handler(
-                MentionEventHandlerArgs(app=app, args=None, event=mention_body)
-            )
+            # In case of Unstructured message, LLM Bot will reply
+            try:
+                messages = get_conversations(
+                    app=app,
+                    mention_body=mention_body,
+                )["messages"]
+                route_config.unstructured_message_routing_config.handler(
+                    MentionEventHandlerArgs(
+                        app=app,
+                        args=None,
+                        event=mention_body,
+                        messages=messages,
+                    )
+                )
+            except Exception as e:
+                app.logger.error(f"Error getting thread replies: {str(e)}")

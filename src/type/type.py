@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable, Optional
-from slack_bolt import App, Say
+from slack_bolt import App
 from typing import Any
+from slack_sdk.web.slack_response import SlackResponse
 
 
 @dataclass
@@ -18,6 +19,7 @@ class MentionEvent:
     type: str = ""
     user: str = ""
     attachments: Optional[Any] = None
+    files: Optional[Any] = None
 
 
 @dataclass
@@ -39,6 +41,7 @@ class MentionEventHandlerArgs:
     args: Any
     event: MentionBody
     app: App
+    messages: Optional[Any] = None
 
 
 @dataclass

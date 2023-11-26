@@ -19,6 +19,6 @@ test:
 	bash scripts/test.sh
 
 .PHONY: reboot
-upgrade:
+reboot:
 	@echo "Reboot..."
 	bash scripts/reboot.sh

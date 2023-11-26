@@ -1,7 +1,7 @@
 import features.echo as echo
 import features.echo_block as echo_block
 import features.head_sheet as head_sheet
-import features.ping as ping
+import features.status as status
 import features.llm_chatbot.llm_chatbot as llm_chatbot
 from type.type import CommandRoutingConfig, UnstructuredMessageRoutingConfig
 from dataclasses import dataclass
@@ -37,11 +37,11 @@ route_config: RouteConfig = RouteConfig(
             handler=head_sheet.handler,
         ),
         CommandRoutingConfig(
-            command="ping",
-            description="check connection status result",
+            command="status",
+            description="check machine status",
             args=[],
             options=[],
-            handler=ping.handler,
+            handler=status.handler,
         ),
     ],
     unstructured_message_routing_config=UnstructuredMessageRoutingConfig(

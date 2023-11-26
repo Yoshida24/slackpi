@@ -1,12 +1,16 @@
 from type.type import MentionEventHandlerArgs
 from modules.bolt.reply import reply
 import socket
+import subprocess
+import os
 
 
 def handler(args: MentionEventHandlerArgs) -> None:
     global_ip = get_global_ip()
     local_ip = get_local_ip()
     host = get_hostname()
+    git_commit_id = get_git_commit_id()
+    port = "8081"
     reply(
         args.app,
         mention_body=args.event,
@@ -21,15 +25,34 @@ def handler(args: MentionEventHandlerArgs) -> None:
                             {
                                 "type": "rich_text_section",
                                 "elements": [
-                                    {"type": "text", "text": "Status: "},
-                                    {"type": "text", "text": "connected"},
+                                    {"type": "text", "text": "Version: "},
+                                    {
+                                        "type": "link",
+                                        "url": f"https://github.com/Yoshida24/slackpi/commit/{git_commit_id}",
+                                        "text": git_commit_id,
+                                    },
+                                ],
+                            },
+                            {
+                                "type": "rich_text_section",
+                                "elements": [
+                                    {"type": "text", "text": "Host: "},
+                                    {
+                                        "type": "link",
+                                        "url": f"https://{host}:{port}/",
+                                        "text": host,
+                                    },
                                 ],
                             },
                             {
                                 "type": "rich_text_section",
                                 "elements": [
                                     {"type": "text", "text": "Local IP: "},
-                                    {"type": "text", "text": local_ip},
+                                    {
+                                        "type": "link",
+                                        "url": f"https://{local_ip}:{port}/",
+                                        "text": local_ip,
+                                    },
                                 ],
                             },
                             {
@@ -37,13 +60,6 @@ def handler(args: MentionEventHandlerArgs) -> None:
                                 "elements": [
                                     {"type": "text", "text": "Global IP: "},
                                     {"type": "text", "text": global_ip},
-                                ],
-                            },
-                            {
-                                "type": "rich_text_section",
-                                "elements": [
-                                    {"type": "text", "text": "Host: "},
-                                    {"type": "text", "text": host},
                                 ],
                             },
                         ],
@@ -54,7 +70,6 @@ def handler(args: MentionEventHandlerArgs) -> None:
     )
 
 
-# 自信のパブリックIPアドレスを取得する関数
 def get_global_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("", 1))
@@ -82,10 +97,14 @@ def get_local_ip():
     return IP
 
 
-print(get_local_ip())
-
-
-# 自信のホスト名を取得する関数
 def get_hostname():
     hostname = socket.gethostname()
     return hostname
+
+
+def get_git_commit_id():
+    dir = os.getcwd()
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=dir, stdout=subprocess.PIPE
+    )
+    return result.stdout.decode("utf-8").strip()[:7]

@@ -29,4 +29,4 @@ jobs:
           PR_DESCRIPTION.ADD_ORIGINAL_USER_DESCRIPTION: 'true'
           PR_DESCRIPTION.KEEP_ORIGINAL_USER_TITLE: 'true'
           PR_DESCRIPTION.PUBLISH_DESCRIPTION_AS_COMMENT: 'true'
-          PR_CODE_SUGGESTIONS.EXTRA_INSTRUCTIONS: 'Please use Japanese in descriptions.
+          PR_CODE_SUGGESTIONS.EXTRA_INSTRUCTIONS: 'Please use Japanese in descriptions.'

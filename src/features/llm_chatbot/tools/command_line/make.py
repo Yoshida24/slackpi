@@ -6,8 +6,6 @@ from openai.types.chat import ChatCompletionToolParam
 def make_impl(dir: str, make_args: str, **kwargs):
     # makeコマンドを実行
     results = []
-    res_cd = subprocess.run(["cd", dir], stdout=subprocess.PIPE)
-    results.append(res_cd.stdout.decode("utf-8"))
     if make_args.startswith("make "):
         make_args = make_args[5:]
     res_make = subprocess.run(

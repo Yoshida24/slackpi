@@ -22,6 +22,10 @@ from features.llm_chatbot.tools.pixoo64.pixoo64_display_image_text import (
     pixoo64_display_image_text_impl,
     pixoo64_display_image_text_tool,
 )
+from features.llm_chatbot.tools.command_line.make import (
+    make_impl,
+    make_tool,
+)
 from typing import Callable
 
 import logging
@@ -33,7 +37,12 @@ llm_model = "gpt-4-1106-preview"
 temperature = 0.1
 system_msg = "You are a Friendly and helpful AI assistant."
 
-tools = [take_screenshot_tool, fetch_pokemon_data_tool, pixoo64_display_image_text_tool]
+tools = [
+    take_screenshot_tool,
+    fetch_pokemon_data_tool,
+    pixoo64_display_image_text_tool,
+    make_tool,
+]
 
 
 def tools_response(
@@ -73,6 +82,8 @@ def tools_response(
                         selected_function = pixoo64_display_image_text_impl
                     elif function_name == "fetch_pokemon_data":
                         selected_function = fetch_pokemon_data_impl
+                    elif function_name == "make":
+                        selected_function = make_impl
                     else:
                         raise Exception("function not found")
 

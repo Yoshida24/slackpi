@@ -10,7 +10,9 @@ def make_impl(dir: str, make_args: str, **kwargs):
     results.append(res_cd.stdout.decode("utf-8"))
     if make_args.startswith("make "):
         make_args = make_args[5:]
-    res_make = subprocess.run(["make"] + make_args.split(" "), stdout=subprocess.PIPE)
+    res_make = subprocess.run(
+        ["make"] + make_args.split(" "), cwd=dir, stdout=subprocess.PIPE
+    )
     results.append(res_make.stdout.decode("utf-8"))
 
     return {"message": "\n".join(results), "file": None}

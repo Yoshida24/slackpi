@@ -22,13 +22,24 @@ def get_device_ip_address() -> str:
     Returns:
         str: "192.168.179.26"
     """
-    res = requests.post("https://app.divoom-gz.com/Device/ReturnSameLANDevice")
+    res = requests.post("https://app.divoom-gz.com/Device/ReturnSameLANDevice").json()
     # {"ReturnCode":0,"ReturnMessage":"","DeviceList":[{"DeviceName":"Pixoo64","DeviceId":300055181,"DevicePrivateIP":"192.168.179.26","DeviceMac":"c4dee2233270","Hardware":90}]}
+    if len(res["DeviceList"]) == 0:
+        print("Pixoo64: Device not found. failed to get IP address")
+        raise Exception("Pixoo64: Device not found. failed to get IP address")
+
     return res.json()["DeviceList"][0]["DevicePrivateIP"]
 
 
+def get_device_ip_address_fixed() -> str:
+    return "192.168.179.26"
+
+
 def base_url() -> str:
-    return f"http://{get_device_ip_address()}:{get_device_port()}"
+    try:
+        return f"http://{get_device_ip_address()}:{get_device_port()}"
+    except Exception as e:
+        return f"http://{get_device_ip_address_fixed()}:{get_device_port()}"
 
 
 def display_text(
